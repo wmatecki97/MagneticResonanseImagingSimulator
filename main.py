@@ -7,7 +7,8 @@ import time
 alpha = 1 #kat obrotu
 n = 300 #liczba detektorow
 d = 90 #rozpietosc
-numberOfThreads = 24
+numberOfThreads = 8
+
 image = color.rgb2gray(io.imread('Kropka.jpg'))
 
 start = time.time()

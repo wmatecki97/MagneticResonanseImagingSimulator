@@ -15,35 +15,29 @@ def radon(img, detectors_n, alpha, d, nrOfThreads):
     iter_n = floor(360 / alpha)
     sinogram = Manager().list([0] *iter_n)
     measures= Manager().list([0] *iter_n)
-    sem = threading.Semaphore(1)
-    #sem1 = threading.Semaphore(1)
-    numberOfThreadsFinished=0
 
     iterationsPerThread = int(iter_n/nrOfThreads);
 
-    #print(iterationsPerThread)
 
     processes=[]
     for threadNumber in range(nrOfThreads):
-        p = Process(target=getAndInsertSinogramVec, args=[alpha, d, detectors_n, img, img_height, img_width, threadNumber, measures, r, sinogram, sem, iterationsPerThread])
-        #getAndInsertSinogramVec(alpha, d, detectors_n, img, img_height, img_width, iteration, measures, r, sinogram, sem, sem1)
+        p = Process(target=getAndInsertSinogramVec, args=[alpha, d, detectors_n, img, img_height, img_width, threadNumber, measures, r, sinogram, iterationsPerThread])
         p.start()
         processes.append(p)
 
-    for process in processes: #wait for all threads
+    for process in processes:
        process.join()
 
     return sinogram, measures
 
 
-def getAndInsertSinogramVec(alpha, d, detectors_n, img, img_height, img_width, threadNumber, measures, r, sinogram, sem, iterationsPerThread):
+def getAndInsertSinogramVec(alpha, d, detectors_n, img, img_height, img_width, threadNumber, measures, r, sinogram, iterationsPerThread):
     start = threadNumber*iterationsPerThread
     for iteration in range(start, start + iterationsPerThread):
         measuration, sinogram_vec = getSinogramVec(alpha, d, detectors_n, img, img_height, img_width, iteration, r)
-        sem.acquire()
+
         sinogram[iteration] = sinogram_vec
         measures[iteration] = measuration
-        sem.release()
 
 def getSinogramVec(alpha, d, detectors_n, img, img_height, img_width, iteration, r):
     print(iteration)
