@@ -1,15 +1,14 @@
 from skimage import color, io
 import matplotlib.pyplot as plt
 import numpy as np
-from tomography import radon
-import time
+from tomography import radon, inverse_radon
 
 alpha = 1 #kat obrotu
-n = 300 #liczba detektorow
-d = 90 #rozpietosc
+n = 400 #liczba detektorow
+d = 180 #rozpietosc
 numberOfThreads = 8
 
-image = color.rgb2gray(io.imread('Kropka.jpg'))
+image = color.rgb2gray(io.imread('picbrain.jpg'))
 
 start = time.time()
 #plt.imshow(image, cmap='gray')
@@ -22,4 +21,8 @@ arr = np.transpose(arr)
 end = time.time()
 print(end - start)
 plt.imshow(arr, cmap='gray')
+plt.show()
+
+inverse = inverse_radon(image, sinogram, n, alpha, d)
+plt.imshow(inverse, cmap='gray')
 plt.show()
