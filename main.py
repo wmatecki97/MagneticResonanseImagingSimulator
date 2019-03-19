@@ -2,6 +2,7 @@ from skimage import color, io
 import matplotlib.pyplot as plt
 import numpy as np
 from tomography import radon, inverse_radon
+import time
 
 alpha = 1 #kat obrotu
 n = 400 #liczba detektorow
@@ -23,6 +24,7 @@ print(end - start)
 plt.imshow(arr, cmap='gray')
 plt.show()
 
-inverse = inverse_radon(image, sinogram, n, alpha, d)
+sino = np.copy(sinogram)
+inverse = inverse_radon(image, sino, n, alpha, d)
 plt.imshow(inverse, cmap='gray')
 plt.show()
