@@ -96,3 +96,10 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d):
             if result_counter[i][j] > 0:
                 result_img[i][j] = result_img[i][j]/result_counter[i][j]
     return result_img
+
+def convolution(sinogram, mask):
+    result = np.copy(sinogram)
+    for i in range(len(sinogram)):
+        for j in range(1, len(sinogram[0])-1):
+            result[i][j] = (mask[0]*sinogram[i][j-1] + mask[1]*sinogram[i][j] + mask[2]*sinogram[i][j+1])
+    return result
