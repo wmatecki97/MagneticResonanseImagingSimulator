@@ -1,4 +1,3 @@
-import threading
 from math import *
 from bresenham import bresenham
 from measure import measure
@@ -42,6 +41,13 @@ def getAndInsertSinogramVec(alpha, d, detectors_n, img, img_height, img_width, t
         sinogram[iteration] = sinogram_vec
         measures[iteration] = measuration
 
+
+def applyFilter(sinogram_vec):
+    copy = sinogram_vec.copy()
+    for i in range(1, len(sinogram_vec)-1):
+        copy[i] = sinogram_vec[i]*5 - sinogram_vec[i-1]*2 - sinogram_vec[i+1]*2
+    return copy;
+
 def getSinogramVec(alpha, d, detectors_n, img, img_height, img_width, iteration, r):
     print(iteration)
     measuration = measure(iteration)
@@ -55,6 +61,7 @@ def getSinogramVec(alpha, d, detectors_n, img, img_height, img_width, iteration,
         ray = bresenham(xE, yE, xD, yD)
         measuration.rays.append(ray)
         sinogram_vec.append(get_sinogram_value(ray, img, img_width, img_height))
+    sinogram_vec = applyFilter(sinogram_vec)
     return measuration, sinogram_vec
 
 
