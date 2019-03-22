@@ -19,11 +19,21 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask):
     (img_width, img_height, r) = image_properties(img)
     print(img_height, img_width)
     iter_n = floor(360 / alpha)
-    sinogram = Manager().list([0] *iter_n)
-    measures= Manager().list([0] *iter_n)
+
+    measures = Manager().list([0] *iter_n)
+    mp_arr = mp.Array(c.c_double, detectors_n * iter_n)  # shared, can be used from multiple processes
+
+    # then in each new process create a new numpy array using:
+    arr = np.frombuffer(mp_arr.get_obj())  # mp_arr and arr share the same memory
+    # make it two-dimensional
+    sinogram = arr.reshape((iter_n, detectors_n))  # b and arr share the same memory
+    image = color.rgb2gray(io.imread('picbrain.jpg'))
+    plt.subplot(211)
+    im = plt.imshow(image, cmap='gray')
+    plt.show(block=False)
+    plt.pause(0.0001)
 
     iterationsPerThread = int(iter_n/nrOfThreads);
-
 
     processes=[]
     for threadNumber in range(nrOfThreads):
@@ -31,8 +41,13 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask):
         p.start()
         processes.append(p)
 
-    for process in processes:
-       process.join()
+    while any(p.is_alive() for p in processes):
+        arr = np.asarray(sinogram)
+        arr = np.transpose(arr)
+        time.sleep(0.05)
+        im.set_data(arr)
+        plt.show(block=False)
+        plt.pause(0.0001)
 
     return sinogram, measures
 
@@ -42,7 +57,8 @@ def getAndInsertSinogramVec(alpha, d, detectors_n, img, img_height, img_width, t
     for iteration in range(start, start + iterationsPerThread):
         measuration, sinogram_vec = getSinogramVec(alpha, d, detectors_n, img, img_height, img_width, iteration, r, mask)
 
-        sinogram[iteration] = sinogram_vec
+        for i in  range(len(sinogram_vec)):
+            sinogram[iteration][i] = sinogram_vec[i]
         #measures[iteration] = measuration
 
 
@@ -121,19 +137,21 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads):
 
 
     while any(p.is_alive() for p in processes):
-     time.sleep(0.05)
-     #lock.acquire()
-     im.set_data(normalized_img)
-     plt.draw()
-     #lock.release()
-     plt.pause(0.0001)
+        updateImage(im, normalized_img)
 
-    im.set_data(normalized_img)
-    plt.draw()
-    plt.pause(0.0001)
+    updateImage(im, normalized_img)
 
     plt.waitforbuttonpress()
     return normalized_img
+
+
+def updateImage(im, normalized_img):
+    time.sleep(0.05)
+    # lock.acquire()
+    im.set_data(normalized_img)
+    plt.draw()
+    # lock.release()
+    plt.pause(0.0001)
 
 
 def CreateImage(alpha, d, detectors_n, img_height, img_width, index, iterationsPerThread, normalized_img, r,
