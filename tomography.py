@@ -27,13 +27,14 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask):
     arr = np.frombuffer(mp_arr.get_obj())  # mp_arr and arr share the same memory
     # make it two-dimensional
     sinogram = arr.reshape((iter_n, detectors_n))  # b and arr share the same memory
-    image = color.rgb2gray(io.imread('picbrain.jpg'))
-    plt.subplot(211)
-    im = plt.imshow(image, cmap='gray')
-    plt.show(block=False)
-    plt.pause(0.0001)
 
-    iterationsPerThread = int(iter_n/nrOfThreads);
+    fig, (ax1, ax2) = plt.subplots(2, 1)
+
+    # new_img = np.zeros((img_width, img_height))
+    # ax2.imshow(new_img, cmap='gray')
+    # plt.show(block=False)
+
+    iterationsPerThread = int(iter_n/nrOfThreads)
 
     processes=[]
     for threadNumber in range(nrOfThreads):
@@ -45,11 +46,14 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask):
         arr = np.asarray(sinogram)
         arr = np.transpose(arr)
         time.sleep(0.05)
-        im.set_data(arr)
-        plt.show(block=False)
+        fig.canvas.flush_events()
+        ax1.imshow(arr, cmap='gray')
+        # im.set_data(arr)
+
+        # plt.show(block=False)
         plt.pause(0.0001)
 
-    return sinogram, measures
+    return sinogram, measures, fig
 
 
 def getAndInsertSinogramVec(alpha, d, detectors_n, img, img_height, img_width, threadNumber, measures, r, sinogram, iterationsPerThread, mask):
@@ -96,7 +100,7 @@ def get_sinogram_value(ray,image, img_width, img_height):
     return 0
 
 
-def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads):
+def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig):
     (img_width, img_height, r) = image_properties(img)
 
     mp_arr = mp.Array(c.c_double, img_width*img_height)  # shared, can be used from multiple processes
@@ -122,11 +126,11 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads):
 
     index=0
 
-    image = color.rgb2gray(io.imread('picbrain.jpg'))
+    # image = color.rgb2gray(io.imread('picbrain.jpg'))
     plt.subplot(212)
-    im = plt.imshow(image, cmap='gray')
-    plt.show(block=False)
-    plt.pause(0.0001)
+    # im = plt.imshow(image, cmap='gray')
+    # plt.show(block=False)
+    # plt.pause(0.0001)
 
     lock = Lock()
     for thread_num in range(nrOfThreads):
@@ -137,19 +141,21 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads):
 
 
     while any(p.is_alive() for p in processes):
-        updateImage(im, normalized_img)
+        updateImage(fig, normalized_img)
 
-    updateImage(im, normalized_img)
+    updateImage(fig, normalized_img)
 
     plt.waitforbuttonpress()
     return normalized_img
 
 
-def updateImage(im, normalized_img):
+def updateImage(fig, normalized_img):
     time.sleep(0.05)
     # lock.acquire()
-    im.set_data(normalized_img)
-    plt.draw()
+    # im.set_data(normalized_img)
+    # plt.draw()
+    plt.imshow(normalized_img, cmap='gray')
+    fig.canvas.flush_events()
     # lock.release()
     plt.pause(0.0001)
 
