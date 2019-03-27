@@ -12,7 +12,7 @@ class Window(Frame):
         self.master = master
         master.title("Tomograph")
 
-        self.numberOfThreads = 1
+        self.numberOfThreads = 4
         self.mask = [-30, 61, -30]
         self.image = color.rgb2gray(io.imread('picbrain.jpg'))
         self.alpha = 0
@@ -72,10 +72,10 @@ class Window(Frame):
             return
 
         print("sinogram")
-        sinogram, measures, fig = radon(self.image, self.n, self.alpha, self.d, self.numberOfThreads, self.mask)
+        sinogram, measures, fig = radon(self.image, self.n, self.alpha, self.d, self.numberOfThreads, self.mask, self.is_iterative.get())
 
         sino = np.copy(sinogram)
-        inverse = inverse_radon(self.image, sino, self.n, self.alpha, self.d, self.numberOfThreads, fig)
+        inverse = inverse_radon(self.image, sino, self.n, self.alpha, self.d, self.numberOfThreads, fig, self.is_iterative.get())
 
 
     def set_variables(self):

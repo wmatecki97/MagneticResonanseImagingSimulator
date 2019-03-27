@@ -15,7 +15,7 @@ def image_properties(img):
     return img_width, img_height, r
 
 
-def radon(img, detectors_n, alpha, d, nrOfThreads, mask):
+def radon(img, detectors_n, alpha, d, nrOfThreads, mask, is_iterative):
     (img_width, img_height, r) = image_properties(img)
     print(img_height, img_width)
     iter_n = floor(360 / alpha)
@@ -31,6 +31,7 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask):
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
     ax1.imshow(img, cmap='gray')
     ax3.imshow(np.zeros((img_width, img_height)), cmap='gray')
+    plt.pause(0.0001)
 
     # new_img = np.zeros((img_width, img_height))
     # ax2.imshow(new_img, cmap='gray')
@@ -44,16 +45,23 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask):
         p.start()
         processes.append(p)
 
-    while any(p.is_alive() for p in processes):
-        arr = np.asarray(sinogram)
-        arr = np.transpose(arr)
-        time.sleep(0.05)
-        fig.canvas.flush_events()
-        ax2.imshow(arr, cmap='gray')
-        # im.set_data(arr)
 
-        # plt.show(block=False)
-        plt.pause(0.0001)
+    while any(p.is_alive() for p in processes):
+        if is_iterative:
+            arr = np.asarray(sinogram)
+            arr = np.transpose(arr)
+            time.sleep(0.05)
+            fig.canvas.flush_events()
+            ax2.imshow(arr, cmap='gray')
+            # im.set_data(arr)
+
+            # plt.show(block=False)
+            plt.pause(0.0001)
+
+    arr = np.asarray(sinogram)
+    arr = np.transpose(arr)
+    ax2.imshow(arr, cmap='gray')
+    plt.pause(0.0001)
 
     return sinogram, measures, fig
 
@@ -102,7 +110,7 @@ def get_sinogram_value(ray,image, img_width, img_height):
     return 0
 
 
-def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig):
+def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig, is_iterative):
     (img_width, img_height, r) = image_properties(img)
 
     mp_arr = mp.Array(c.c_double, img_width*img_height)  # shared, can be used from multiple processes
@@ -141,9 +149,9 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig):
         p.start()
         processes.append(p)
 
-
     while any(p.is_alive() for p in processes):
-        updateImage(fig, normalized_img)
+        if is_iterative:
+            updateImage(fig, normalized_img)
 
     updateImage(fig, normalized_img)
 
