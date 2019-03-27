@@ -58,6 +58,8 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask, is_iterative):
             # plt.show(block=False)
             plt.pause(0.0001)
 
+    sinogram = normalize_sinogram(sinogram)
+
     arr = np.asarray(sinogram)
     arr = np.transpose(arr)
     ax2.imshow(arr, cmap='gray')
@@ -65,6 +67,12 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask, is_iterative):
 
     return sinogram, measures, fig
 
+def normalize_sinogram(sinogram):
+    mini, maxi = sinogram.min(), sinogram.max()
+    for i in range(len(sinogram)):
+        for j in range(len(sinogram[0])):
+            sinogram[i][j] = (sinogram[i][j] - mini)/(maxi - mini)
+    return sinogram
 
 def getAndInsertSinogramVec(alpha, d, detectors_n, img, img_height, img_width, threadNumber, measures, r, sinogram, iterationsPerThread, mask):
     start = threadNumber*iterationsPerThread
@@ -112,7 +120,6 @@ def get_sinogram_value(ray,image, img_width, img_height):
 
 def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig, is_iterative):
     (img_width, img_height, r) = image_properties(img)
-
     mp_arr = mp.Array(c.c_double, img_width*img_height)  # shared, can be used from multiple processes
     mp_arr2 = mp.Array(c.c_double, img_width*img_height)  # shared, can be used from multiple processes
     mp_arr3 = mp.Array(c.c_double, img_width*img_height)  # shared, can be used from multiple processes
@@ -131,7 +138,7 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig, is_ite
     iter_n = len(sinogram)
     print("INVERSE RADON")
 
-    iterationsPerThread = int(iter_n/nrOfThreads);
+    iterationsPerThread = int(iter_n/nrOfThreads)
     processes=[]
 
     index=0
@@ -141,7 +148,6 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig, is_ite
     # im = plt.imshow(image, cmap='gray')
     # plt.show(block=False)
     # plt.pause(0.0001)
-
     lock = Lock()
     for thread_num in range(nrOfThreads):
         index=thread_num*iterationsPerThread
