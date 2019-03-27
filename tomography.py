@@ -28,7 +28,9 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask):
     # make it two-dimensional
     sinogram = arr.reshape((iter_n, detectors_n))  # b and arr share the same memory
 
-    fig, (ax1, ax2) = plt.subplots(2, 1)
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1)
+    ax1.imshow(img, cmap='gray')
+    ax3.imshow(np.zeros((img_width, img_height)), cmap='gray')
 
     # new_img = np.zeros((img_width, img_height))
     # ax2.imshow(new_img, cmap='gray')
@@ -47,7 +49,7 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask):
         arr = np.transpose(arr)
         time.sleep(0.05)
         fig.canvas.flush_events()
-        ax1.imshow(arr, cmap='gray')
+        ax2.imshow(arr, cmap='gray')
         # im.set_data(arr)
 
         # plt.show(block=False)
@@ -70,7 +72,7 @@ def applyFilter(sinogram_vec, mask):
     copy = sinogram_vec.copy()
     for i in range(1, len(sinogram_vec)-1):
         copy[i] = sinogram_vec[i]*mask[1] + sinogram_vec[i-1]*mask[0] + sinogram_vec[i+1]*mask[2]
-    return copy;
+    return copy
 
 def getSinogramVec(alpha, d, detectors_n, img, img_height, img_width, iteration, r, mask):
     print(iteration)
@@ -127,7 +129,7 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig):
     index=0
 
     # image = color.rgb2gray(io.imread('picbrain.jpg'))
-    plt.subplot(212)
+    plt.subplot(313)
     # im = plt.imshow(image, cmap='gray')
     # plt.show(block=False)
     # plt.pause(0.0001)
@@ -145,7 +147,7 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig):
 
     updateImage(fig, normalized_img)
 
-    plt.waitforbuttonpress()
+    # plt.waitforbuttonpress()
     return normalized_img
 
 
