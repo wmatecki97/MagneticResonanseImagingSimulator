@@ -70,7 +70,23 @@ class Dicom_Window(Toplevel):
         print("saved as dicom")
 
 
+    def load(self, filename, patient):
+        print("sa")
+        name, age, weight, sex, comment = patient
+        self.file.set(filename)
+        self.name.set(name)
+        self.age.set(age)
+        self.weight.set(weight)
+        self.sex.set(sex)
+        self.comment.set(comment)
 
+        self.file_entry.update()
+        self.name_entry.update()
+        self.age_entry.update()
+        self.weight_entry.update()
+        self.sex_entry.update()
+        self.comment_text.insert(END, comment)
+        self.save_button.destroy()
 
 
 

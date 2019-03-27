@@ -2,6 +2,8 @@ from tkinter import *
 from skimage import color, io
 import matplotlib.pyplot as plt
 import numpy as np
+
+from dicom import load_dicom
 from tomography import radon, inverse_radon
 from dicom_window import Dicom_Window
 
@@ -15,7 +17,7 @@ class Window(Frame):
 
         self.numberOfThreads = 8
         self.mask = [-30, 61, -30]
-        self.image = color.rgb2gray(io.imread('picbrain.jpg'))
+        self.image = []
         self.alpha = 0
         self.n = 0
         self.d = 0
@@ -30,9 +32,9 @@ class Window(Frame):
         self.threads_var = IntVar()
 
         # default values
-        self.image_var.set("picbrain.jpg")
+        self.image_var.set("Sin.png")
         self.alpha_var.set("1")
-        self.n_var.set("10")
+        self.n_var.set("100")
         self.d_var.set("180")
         self.threads_var.set(8)
 
@@ -92,7 +94,12 @@ class Window(Frame):
     def get_variables(self):
         try:
             image_name = str(self.image_var.get())
-            self.image = color.rgb2gray(io.imread(image_name))
+            if image_name[-4:] == '.dcm':
+                (self.image, patient) = load_dicom(image_name)
+                dicom_window = Dicom_Window(self)
+                dicom_window.load(image_name, patient)
+            else:
+                self.image = color.rgb2gray(io.imread(image_name))
         except:
             print("something wrong with the image")
             return -1

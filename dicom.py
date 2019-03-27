@@ -1,13 +1,8 @@
 import datetime
 import pydicom
-from pydicom import Dataset, FileDataset
-import os
-import time
 import numpy as np
 from pydicom.data import get_testdata_files
 from skimage import img_as_uint, img_as_ubyte
-from skimage.exposure import exposure
-
 
 def save_dicom(filename, patient, image):
 
@@ -49,3 +44,18 @@ def save_dicom(filename, patient, image):
     ds.PixelData = image.tobytes()
 
     ds.save_as(filename)
+
+
+def load_dicom(filename):
+    ds = pydicom.dcmread(filename)
+    image = np.array(ds.pixel_array, dtype=np.uint8)
+    name = ds.PatientName
+    age = ds.PatientAge
+    weight = ds.PatientWeight
+    sex = ds.PatientSex
+    comment = ds.AdditionalPatientHistory
+    patient = (name, age, weight, sex, comment)
+    print(patient)
+    return image, patient
+
+
