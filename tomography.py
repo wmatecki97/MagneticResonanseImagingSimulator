@@ -1,4 +1,7 @@
 from math import *
+
+from skimage.exposure import exposure
+
 from bresenham import bresenham
 from measure import measure
 from multiprocessing import Process, Manager, Lock
@@ -15,7 +18,7 @@ def image_properties(img):
     return img_width, img_height, r
 
 
-def radon(img, detectors_n, alpha, d, nrOfThreads, mask, is_iterative):
+def radon(img, detectors_n, alpha, d, nrOfThreads, mask, is_iterative, rescale):
     (img_width, img_height, r) = image_properties(img)
     print(img_height, img_width)
     iter_n = floor(360 / alpha)
@@ -60,6 +63,8 @@ def radon(img, detectors_n, alpha, d, nrOfThreads, mask, is_iterative):
 
     sinogram = normalize_sinogram(sinogram)
 
+    if rescale==1:
+        sinogram = stretch(sinogram)
     arr = np.asarray(sinogram)
     arr = np.transpose(arr)
     ax2.imshow(arr, cmap='gray')
@@ -118,7 +123,7 @@ def get_sinogram_value(ray,image, img_width, img_height):
     return 0
 
 
-def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig, is_iterative):
+def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig, is_iterative, rescale):
     (img_width, img_height, r) = image_properties(img)
     mp_arr = mp.Array(c.c_double, img_width*img_height)  # shared, can be used from multiple processes
     mp_arr2 = mp.Array(c.c_double, img_width*img_height)  # shared, can be used from multiple processes
@@ -159,6 +164,8 @@ def inverse_radon(img, sinogram, detectors_n, alpha, d, nrOfThreads, fig, is_ite
         if is_iterative:
             updateImage(fig, normalized_img)
 
+    if rescale==1:
+        normalized_img = stretch(normalized_img)
     updateImage(fig, normalized_img)
 
     # plt.waitforbuttonpress()
@@ -194,3 +201,7 @@ def CreateImage(alpha, d, detectors_n, img_height, img_width, index, iterationsP
                     result_img[point[0]][point[1]] += sinogram[i][detector]
                     normalized_img[point[0]][point[1]] = result_img[point[0]][point[1]] / result_counter[point[0]][point[1]]
                     #lock.release()
+
+def stretch(image):
+    start, end = np.percentile(image, (5,99))
+    return exposure.rescale_intensity(image, in_range=(start, end))
